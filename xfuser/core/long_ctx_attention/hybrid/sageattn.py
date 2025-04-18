@@ -1,9 +1,4 @@
 try:
-    from sageattention import sageattn
-except:
-    sageattn = None
-
-try:
     major, minor = torch.cuda.get_device_capability(0)
     if f"{major}.{minor}" == "8.0":
         from sageattention_sm80 import sageattn

@@ -10,6 +10,21 @@ except ImportError:
 
 from yunchang.comm.all_to_all import SeqAllToAll4D
 from yunchang.globals import HAS_SPARSE_SAGE_ATTENTION
+try:
+    major, minor = torch.cuda.get_device_capability(0)
+    if f"{major}.{minor}" == "8.0":
+        from sageattention_sm80 import sageattn
+    elif f"{major}.{minor}" == "8.6":
+        from sageattention_sm86 import sageattn
+    elif f"{major}.{minor}" == "8.9":
+        from sageattention_sm89 import sageattn
+    elif major>=9:
+        from sageattention_sm90 import sageattn
+except:
+    try:
+        from sageattention import sageattn
+    except:
+        sageattn = None
 
 
 from xfuser.logger import init_logger
@@ -66,7 +81,7 @@ class xFuserLongContextAttention(LongContextAttention):
         self.attn_processor = attn_processor
         from xfuser.core.long_ctx_attention.ring import xdit_ring_flash_attn_func
         from xfuser.core.long_ctx_attention.hybrid import xdit_sage_attn_func
-        if attn_type == AttnType.SAGE_FP16:
+        if sageattn is not None:
             self.ring_attn_fn = xdit_sage_attn_func
         else:
             self.ring_attn_fn = xdit_ring_flash_attn_func
