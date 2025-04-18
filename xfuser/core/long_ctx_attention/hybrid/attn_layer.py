@@ -65,7 +65,11 @@ class xFuserLongContextAttention(LongContextAttention):
 
         self.attn_processor = attn_processor
         from xfuser.core.long_ctx_attention.ring import xdit_ring_flash_attn_func
-        self.ring_attn_fn = xdit_ring_flash_attn_func
+        from xfuser.core.long_ctx_attention.hybrid import xdit_sage_attn_func
+        if attn_type == AttnType.SAGE_FP16:
+            self.ring_attn_fn = xdit_sage_attn_func
+        else:
+            self.ring_attn_fn = xdit_ring_flash_attn_func
 
     @torch.compiler.disable
     def forward(
