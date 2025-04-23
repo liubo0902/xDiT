@@ -3,6 +3,7 @@ from torch import Tensor
 
 import torch.distributed
 from yunchang import LongContextAttention
+from yunchang.ring.utils import RingComm
 try:
     from yunchang.kernels import AttnType
 except ImportError:
@@ -84,7 +85,8 @@ class xFuserLongContextAttention(LongContextAttention):
         self.attn_processor = attn_processor
         from xfuser.core.long_ctx_attention.ring import xdit_ring_flash_attn_func
         from xfuser.core.long_ctx_attention.hybrid import xdit_sage_attn_func
-        if sageattn is not None:
+        comm = RingComm(self.ring_pg)
+        if sageattn is not None and comm.world_size==1:
             self.ring_attn_fn = xdit_sage_attn_func
         else:
             self.ring_attn_fn = xdit_ring_flash_attn_func
@@ -277,7 +279,8 @@ class xFuserLongContextAttentionOverLap(LongContextAttention):
         self.attn_processor = attn_processor
         from xfuser.core.long_ctx_attention.ring import xdit_ring_flash_attn_func
         from xfuser.core.long_ctx_attention.hybrid import xdit_sage_attn_func
-        if sageattn is not None:
+        comm = RingComm(self.ring_pg)
+        if sageattn is not None and comm.world_size==1:
             self.ring_attn_fn = xdit_sage_attn_func
         else:
             self.ring_attn_fn = xdit_ring_flash_attn_func
